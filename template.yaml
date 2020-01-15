@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  AWS
+
+  Sample SAM Template for AWS
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 20
+
+Resources:
+  DemoLambdaFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: DemoLambdaFunction
+      Handler: lambda.App::handleRequest
+      Runtime: java8
+      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+        Variables:
+          PARAM1: VALUE
+      Role:
+        !GetAtt DemoLambdaFunctionExecRole.Arn
+      MemorySize:
+        128
+
+  DemoLambdaFunctionExecRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      # Not a good practice but for practicing, leave it like this!
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
+      Description: Exection role for lambda function.
+
+  DemoDynamodbTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: HashKey
+          AttributeType: S
+        - AttributeName: SortKey
+          AttributeType: S
+
+      BillingMode:
+        PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: HashKey
+          KeyType: HASH
+        - AttributeName: SortKey
+          KeyType: RANGE
+      TableName: MyDemoTable
+
+Outputs:
+  DemoLambdaFunction:
+    Description: "Demo Lambda Function ARN"
+    Value: !GetAtt DemoLambdaFunction.Arn
+  DemoLambdaFunctionExecRole:
+    Description: "Implicit IAM Role created for Demo function"
+    Value: !GetAtt DemoLambdaFunctionExecRole.Arn
